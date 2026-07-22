@@ -11,31 +11,19 @@ jobs:
       - name: Checkout Code Repository Freshly
         uses: actions/checkout@v4
         with:
-          submodules: false # Force Git to completely ignore the repository's broken internal submodules
+          submodules: false # Prevents the project from hijacking the Git links
 
-      - name: Setup Completely Isolated Directories
+      - name: Install Pure Theos Framework
         run: |
-          mkdir -p ${{ github.workspace }}/clean_theos
-          mkdir -p ${{ github.workspace }}/clean_theos/sdks
-
-      - name: Fetch Official Framework via Independent HTTP
+          git clone --depth=1 https://github.com ${{ github.workspace }}/clean_theos
+          
+      - name: Download Pure iOS SDK Packs
         run: |
-          curl -L "https://github.com" -o theos.zip
-          unzip -q theos.zip
-          mv theos-master/* ${{ github.workspace }}/clean_theos/
-          rm -rf theos-master theos.zip
-
-      - name: Fetch Official SDK Packs via Independent HTTP
-        run: |
-          curl -L "https://github.com" -o sdks.zip
-          unzip -q sdks.zip
-          mv sdks-master/* ${{ github.workspace }}/clean_theos/sdks/
-          rm -rf sdks-master sdks.zip
+          git clone --depth=1 https://github.com ${{ github.workspace }}/clean_theos/sdks
 
       - name: Force Clean Custom Tweak Compilation
         run: |
           export THEOS=${{ github.workspace }}/clean_theos
-          # Erase target architecture caches that conflict with the local files
           make clean
           make package FINALPACKAGE=1
           
