@@ -1,31 +1,28 @@
 name: Compile iOS Tweak Packages
 
 on:
-  workflow_dispatch: # Standard button trigger
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest # Native Xcode engine environment
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      - name: Set up Environment Variables
-        run: |
-          echo "THEOS=$GITHUB_WORKSPACE/theos" >> $GITHUB_ENV
-
       - name: Install Theos Framework Submodules
         run: |
-          git clone --recursive https://github.com $THEOS
+          git clone --recursive https://github.com ${{ github.workspace }}/theos
           
       - name: Clean and Download Official iOS SDK Packs
         run: |
-          rm -rf $THEOS/sdks
-          git clone https://github.com $THEOS/sdks
+          rm -rf ${{ github.workspace }}/theos/sdks
+          git clone https://github.com ${{ github.workspace }}/theos/sdks
 
       - name: Build Tweak Binary Engine
         run: |
+          export THEOS=${{ github.workspace }}/theos
           make package FINALPACKAGE=1
           
       - name: Upload Finished Compiled Package
