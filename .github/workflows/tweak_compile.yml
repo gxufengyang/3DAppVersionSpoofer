@@ -8,27 +8,34 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout Code Repository
+      - name: Checkout Code Repository Freshly
         uses: actions/checkout@v4
+        with:
+          submodules: false # Force Git to completely ignore the repository's broken internal submodules
 
-      - name: Download Pure Theos Framework Archive
+      - name: Setup Completely Isolated Directories
         run: |
-          curl -L "https://github.com" -o pure_theos.zip
-          unzip -q pure_theos.zip
-          mv theos-master ${{ github.workspace }}/clean_theos_env
-          rm -rf pure_theos.zip
+          mkdir -p ${{ github.workspace }}/clean_theos
+          mkdir -p ${{ github.workspace }}/clean_theos/sdks
 
-      - name: Download Pure iOS SDK Archive Packs
+      - name: Fetch Official Framework via Independent HTTP
         run: |
-          curl -L "https://github.com" -o pure_sdks.zip
-          unzip -q pure_sdks.zip
-          rm -rf ${{ github.workspace }}/clean_theos_env/sdks
-          mv sdks-master ${{ github.workspace }}/clean_theos_env/sdks
-          rm -rf pure_sdks.zip
+          curl -L "https://github.com" -o theos.zip
+          unzip -q theos.zip
+          mv theos-master/* ${{ github.workspace }}/clean_theos/
+          rm -rf theos-master theos.zip
 
-      - name: Isolate and Compile Tweak Architecture
+      - name: Fetch Official SDK Packs via Independent HTTP
         run: |
-          export THEOS=${{ github.workspace }}/clean_theos_env
+          curl -L "https://github.com" -o sdks.zip
+          unzip -q sdks.zip
+          mv sdks-master/* ${{ github.workspace }}/clean_theos/sdks/
+          rm -rf sdks-master sdks.zip
+
+      - name: Force Clean Custom Tweak Compilation
+        run: |
+          export THEOS=${{ github.workspace }}/clean_theos
+          # Erase target architecture caches that conflict with the local files
           make clean
           make package FINALPACKAGE=1
           
