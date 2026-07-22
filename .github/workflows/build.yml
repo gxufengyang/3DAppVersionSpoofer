@@ -5,21 +5,21 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest # Using macOS provides Xcode native tools out of the box
+    runs-on: macos-latest # Standard macOS engine provides complete iOS developer toolsets
 
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      - name: Install Theos Framework
+      - name: Install Theos Framework Submodules
         run: |
           git clone --recursive https://github.com $GITHUB_WORKSPACE/theos
           
-      - name: Download Stable iOS SDK
+      - name: Download Official iOS SDK Packs
         run: |
           git clone https://github.com $GITHUB_WORKSPACE/theos/sdks
 
-      - name: Compile Tweak Architecture payload
+      - name: Build Tweak Binary Engine
         run: |
           export THEOS=$GITHUB_WORKSPACE/theos
           make package FINALPACKAGE=1
