@@ -1,0 +1,34 @@
+name: Compile iOS Tweak Packages
+
+on:
+  workflow_dispatch: # Standard button trigger
+
+jobs:
+  build:
+    runs-on: macos-latest # Native Xcode engine environment
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Environment Variables
+        run: |
+          echo "THEOS=$GITHUB_WORKSPACE/theos" >> $GITHUB_ENV
+
+      - name: Install Theos Framework Submodules
+        run: |
+          git clone --recursive https://github.com/theos/theos.git $THEOS
+          
+      - name: Download Official iOS SDK Packs
+        run: |
+          git clone https://github.com $THEOS/sdks
+
+      - name: Build Tweak Binary Engine
+        run: |
+          make package FINALPACKAGE=1
+          
+      - name: Upload Finished Compiled Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: 3DAppVersionSpoofer-Compiled-Deb
+          path: packages/*.deb
