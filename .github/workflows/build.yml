@@ -11,25 +11,22 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      - name: Install Compilation Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential perl clang libssl-dev spear rsync
+      # 1. Use the pre-built, community-approved Theos setup tool
+      - name: Setup Theos Compiler Environment
+        uses: beerpiss/theos-action@v1
+        with:
+          theos-src: https://github.com/theos/theos
+          theos-sdks: https://github.com/theos/sdks
+          cache: true
 
-      - name: Set up Theos Build Environment
+      # 2. Compile the package natively 
+      - name: Build Tweak Binary Archive
         run: |
-          export THEOS=/opt/theos
-          sudo git clone --recursive https://github.com $THEOS
-          
-      - name: Download iOS SDK Components
-        run: |
-          sudo git clone https://github.com /opt/theos/sdks
-          
-      - name: Compile Tweak Binary Architecture
-        run: |
-          export THEOS=/opt/theos
           make package FINALPACKAGE=1
+        env:
+          THEOS: ${{ github.workspace }}/theos
 
+      # 3. Export the finished package out of the cloud runner
       - name: Upload Finished Compiled Package
         uses: actions/upload-artifact@v4
         with:
