@@ -11,14 +11,21 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      - name: Install Theos Framework Submodules
+      - name: Setup Direct Theos Archive
         run: |
-          git clone --recursive https://github.com ${{ github.workspace }}/theos
-          
-      - name: Clean and Download Official iOS SDK Packs
+          mkdir -p ${{ github.workspace }}/theos
+          curl -L https://github.com -o theos.zip
+          unzip -q theos.zip
+          mv theos-master/* ${{ github.workspace }}/theos/
+          rm -rf theos-master theos.zip
+
+      - name: Setup Direct iOS SDK Archive
         run: |
-          rm -rf ${{ github.workspace }}/theos/sdks
-          git clone https://github.com ${{ github.workspace }}/theos/sdks
+          mkdir -p ${{ github.workspace }}/theos/sdks
+          curl -L https://github.com -o sdks.zip
+          unzip -q sdks.zip
+          mv sdks-master/* ${{ github.workspace }}/theos/sdks/
+          rm -rf sdks-master sdks.zip
 
       - name: Build Tweak Binary Engine
         run: |
