@@ -17,10 +17,11 @@ jobs:
 
       - name: Install Theos Framework Submodules
         run: |
-          git clone --recursive https://github.com/theos/theos.git $THEOS
+          git clone --recursive https://github.com $THEOS
           
-      - name: Download Official iOS SDK Packs
+      - name: Clean and Download Official iOS SDK Packs
         run: |
+          rm -rf $THEOS/sdks
           git clone https://github.com $THEOS/sdks
 
       - name: Build Tweak Binary Engine
