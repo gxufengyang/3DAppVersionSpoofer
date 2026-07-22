@@ -11,27 +11,28 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      - name: Clear Pre-Existing Environments
+      - name: Download Pure Theos Framework Archive
         run: |
-          rm -rf ${{ github.workspace }}/theos
+          curl -L "https://github.com" -o pure_theos.zip
+          unzip -q pure_theos.zip
+          mv theos-master ${{ github.workspace }}/clean_theos_env
+          rm -rf pure_theos.zip
 
-      - name: Install Pure Theos Framework
+      - name: Download Pure iOS SDK Archive Packs
         run: |
-          git clone --recursive https://github.com/theos/theos.git ${{ github.workspace }}/theos
-          
-      - name: Download Pure iOS SDK Packs
-        run: |
-          rm -rf ${{ github.workspace }}/theos/sdks
-          git clone https://github.com ${{ github.workspace }}/theos/sdks
+          curl -L "https://github.com" -o pure_sdks.zip
+          unzip -q pure_sdks.zip
+          rm -rf ${{ github.workspace }}/clean_theos_env/sdks
+          mv sdks-master ${{ github.workspace }}/clean_theos_env/sdks
+          rm -rf pure_sdks.zip
 
-      - name: Force Custom Pipeline Compilation
+      - name: Isolate and Compile Tweak Architecture
         run: |
-          export THEOS=${{ github.workspace }}/theos
-          # Clean any local cache variables that break compilation flags
+          export THEOS=${{ github.workspace }}/clean_theos_env
           make clean
           make package FINALPACKAGE=1
           
-      - name: Export Finished Compiled Asset
+      - name: Export Finished Compiled Package
         uses: actions/upload-artifact@v4
         with:
           name: 3DAppVersionSpoofer-Compiled-Deb
