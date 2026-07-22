@@ -5,28 +5,25 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest # Using macOS provides Xcode native tools out of the box
 
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      # 1. Use the pre-built, community-approved Theos setup tool
-      - name: Setup Theos Compiler Environment
-        uses: beerpiss/theos-action@v1
-        with:
-          theos-src: https://github.com/theos/theos
-          theos-sdks: https://github.com/theos/sdks
-          cache: true
-
-      # 2. Compile the package natively 
-      - name: Build Tweak Binary Archive
+      - name: Install Theos Framework
         run: |
-          make package FINALPACKAGE=1
-        env:
-          THEOS: ${{ github.workspace }}/theos
+          git clone --recursive https://github.com $GITHUB_WORKSPACE/theos
+          
+      - name: Download Stable iOS SDK
+        run: |
+          git clone https://github.com $GITHUB_WORKSPACE/theos/sdks
 
-      # 3. Export the finished package out of the cloud runner
+      - name: Compile Tweak Architecture payload
+        run: |
+          export THEOS=$GITHUB_WORKSPACE/theos
+          make package FINALPACKAGE=1
+
       - name: Upload Finished Compiled Package
         uses: actions/upload-artifact@v4
         with:
