@@ -1,34 +1,36 @@
-name: Compile iOS Tweak Packages
+name: Build Tweak Package
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Allows manually triggering the build from the Actions tab
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code Repository Freshly
+      - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Setup Theos Environment
+        uses: Randomblock1/theos-action@v1
         with:
-          submodules: false # Prevents the project from hijacking the Git links
+          theos-src: 'https://github.com/theos/theos'
+          theos-sdks: 'https://github.com/theos/sdks'
+          theos-sdks-branch: 'master'
 
-      - name: Install Pure Theos Framework
+      - name: Compile and Package Tweak
         run: |
-          git clone --depth=1 https://github.com ${{ github.workspace }}/clean_theos
-          
-      - name: Download Pure iOS SDK Packs
-        run: |
-          git clone --depth=1 https://github.com ${{ github.workspace }}/clean_theos/sdks
-
-      - name: Force Clean Custom Tweak Compilation
-        run: |
-          export THEOS=${{ github.workspace }}/clean_theos
-          make clean
           make package FINALPACKAGE=1
-          
-      - name: Export Finished Compiled Package
+        env:
+          THEOS: ${{ github.workspace }}/theos
+
+      - name: Upload Debian Package Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 3DAppVersionSpoofer-Compiled-Deb
+          name: 3DAppVersionSpoofer-deb
           path: packages/*.deb
+          if-no-files-found: error
