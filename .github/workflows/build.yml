@@ -39,26 +39,17 @@ jobs:
           repository: opa334/AltList
           path: altlist-src
 
-      - name: Setup AltList Headers and Stubs
+      - name: Setup AltList Headers
         run: |
-          # 1. Install header files so compilation succeeds
+          # Install the header folder correctly
           mkdir -p "${{ github.workspace }}/theos/include/AltList"
           cp altlist-src/*.h "${{ github.workspace }}/theos/include/AltList/"
-          
-          # 2. Inject AltList linking instructions into the Preference Bundle's Makefile
-          # This forces clang to link against AltList during the arm64e linking phase.
-          if [ -f "3dappversionspooferprefs/Makefile" ]; then
-            echo "3DAppVersionSpooferPrefs_LIBRARIES += altlist" >> 3dappversionspooferprefs/Makefile
-          elif [ -f "3DAppVersionSpooferPrefs/Makefile" ]; then
-            echo "3DAppVersionSpooferPrefs_LIBRARIES += altlist" >> 3DAppVersionSpooferPrefs/Makefile
-          fi
-          
-          # Clean up the cloned source directory
           rm -rf altlist-src
 
       - name: Compile and Package Tweak
         run: |
-          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
+          # Inject the AltList library flag directly through the execution arguments to protect the Makefile structure
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide 3DAppVersionSpooferPrefs_LIBRARIES+=altlist
         env:
           THEOS: ${{ github.workspace }}/theos
 
