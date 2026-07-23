@@ -41,18 +41,23 @@ jobs:
 
       - name: Compile and Install AltList Dependency
         run: |
-          # 1. Standardize the header files inside the global include tree
+          # 1. Structure header files inside the global include tree
           mkdir -p "${{ github.workspace }}/theos/include/AltList"
           cp altlist-src/*.h "${{ github.workspace }}/theos/include/AltList/"
           
-          # 2. Build AltList framework using RootHide scheme to generate the real binary stubs
+          # 2. Compile AltList framework under RootHide scheme without running staging/packaging rules
           cd altlist-src
-          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
+          make FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
           
-          # 3. Extract and place the compiled library binary into Theos' global library folder
+          # 3. Extract and place the compiled shared framework object binary into Theos' global library folder
           mkdir -p "${{ github.workspace }}/theos/lib"
-          cp .theos/obj/arm64/altlist.dylib "${{ github.workspace }}/theos/lib/libaltlist.dylib"
-          cp .theos/obj/arm64e/altlist.dylib "${{ github.workspace }}/theos/lib/libaltlist.dylib" 2>/dev/null || true
+          if [ -d ".theos/obj/AltList.framework" ]; then
+            cp .theos/obj/AltList.framework/AltList "${{ github.workspace }}/theos/lib/libaltlist.dylib"
+          elif [ -f ".theos/obj/arm64/altlist.dylib" ]; then
+            cp .theos/obj/arm64/altlist.dylib "${{ github.workspace }}/theos/lib/libaltlist.dylib"
+          elif [ -f ".theos/obj/arm64e/altlist.dylib" ]; then
+            cp .theos/obj/arm64e/altlist.dylib "${{ github.workspace }}/theos/lib/libaltlist.dylib"
+          fi
           
           # 4. Clean up workspace
           cd ..
@@ -62,8 +67,7 @@ jobs:
 
       - name: Compile and Package Tweak
         run: |
-          # The preferences makefile lacks an explicit library declaration. 
-          # We dynamically pass it as an argument during compilation now that libaltlist.dylib is available.
+          # Pass the dynamic binary flag to satisfy Clang's linker rules natively
           make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide 3DAppVersionSpooferPrefs_LIBRARIES+=altlist
         env:
           THEOS: ${{ github.workspace }}/theos
