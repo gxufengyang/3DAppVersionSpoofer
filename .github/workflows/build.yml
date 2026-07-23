@@ -5,7 +5,7 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch: # Allows manually triggering the build from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
@@ -22,9 +22,19 @@ jobs:
           theos-sdks: 'https://github.com/theos/sdks'
           theos-sdks-branch: 'master'
 
+      - name: Install RootHide Header and Library
+        run: |
+          # Fetch and place the missing roothide.h file into Theos include directory
+          curl -sSL "https://githubusercontent.com" -o "${{ github.workspace }}/theos/include/roothide.h"
+          
+          # Fetch and place the missing stub library for linking
+          mkdir -p "${{ github.workspace }}/theos/lib/iphone"
+          curl -sSL "https://github.com" -o "${{ github.workspace }}/theos/lib/iphone/libroothide.tbd"
+
       - name: Compile and Package Tweak
         run: |
-          make package FINALPACKAGE=1
+          # If building explicitly for Roothide, pass THEOS_PACKAGE_SCHEME=roothide
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
         env:
           THEOS: ${{ github.workspace }}/theos
 
