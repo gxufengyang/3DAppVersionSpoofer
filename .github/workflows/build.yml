@@ -33,19 +33,25 @@ jobs:
           cp libroothide-src/roothide-theos.h "${{ github.workspace }}/theos/include/roothide.h"
           rm -rf libroothide-src
 
-      - name: Checkout and Install AltList Headers
+      - name: Checkout AltList Repository
         uses: actions/checkout@v4
         with:
           repository: opa334/AltList
           path: altlist-src
 
-      - name: Setup AltList for Theos
+      - name: Setup AltList Headers and Stubs
         run: |
-          # Create a dedicated AltList folder inside the Theos include tree
+          # 1. Install header files so compilation succeeds
           mkdir -p "${{ github.workspace }}/theos/include/AltList"
-          
-          # Move all public header files into the newly created folder
           cp altlist-src/*.h "${{ github.workspace }}/theos/include/AltList/"
+          
+          # 2. Inject AltList linking instructions into the Preference Bundle's Makefile
+          # This forces clang to link against AltList during the arm64e linking phase.
+          if [ -f "3dappversionspooferprefs/Makefile" ]; then
+            echo "3DAppVersionSpooferPrefs_LIBRARIES += altlist" >> 3dappversionspooferprefs/Makefile
+          elif [ -f "3DAppVersionSpooferPrefs/Makefile" ]; then
+            echo "3DAppVersionSpooferPrefs_LIBRARIES += altlist" >> 3DAppVersionSpooferPrefs/Makefile
+          fi
           
           # Clean up the cloned source directory
           rm -rf altlist-src
