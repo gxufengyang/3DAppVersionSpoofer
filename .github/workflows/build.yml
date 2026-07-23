@@ -18,22 +18,29 @@ jobs:
       - name: Setup Theos Environment
         uses: Randomblock1/theos-action@v1
         with:
-          theos-src: 'https://github.com/theos/theos'
-          theos-sdks: 'https://github.com/theos/sdks'
+          theos-src: 'https://github.com'
+          theos-sdks: 'https://github.com'
           theos-sdks-branch: 'master'
+
+      - name: Checkout RootHide Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: roothide/libroothide
+          path: libroothide-src
 
       - name: Install RootHide Header and Library
         run: |
-          # Fetch and place the missing roothide.h file into Theos include directory
-          curl -sSL "https://githubusercontent.com" -o "${{ github.workspace }}/theos/include/roothide.h"
+          # Copy headers and libraries from checked-out source to the correct Theos directories
+          cp libroothide-src/roothide-theos.h "${{ github.workspace }}/theos/include/roothide.h"
           
-          # Fetch and place the missing stub library for linking
           mkdir -p "${{ github.workspace }}/theos/lib/iphone"
-          curl -sSL "https://github.com" -o "${{ github.workspace }}/theos/lib/iphone/libroothide.tbd"
+          cp libroothide-src/lib/iphone/libroothide.tbd "${{ github.workspace }}/theos/lib/iphone/libroothide.tbd"
+          
+          # Clean up the cloned source folder to keep workspace tidy
+          rm -rf libroothide-src
 
       - name: Compile and Package Tweak
         run: |
-          # If building explicitly for Roothide, pass THEOS_PACKAGE_SCHEME=roothide
           make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
         env:
           THEOS: ${{ github.workspace }}/theos
