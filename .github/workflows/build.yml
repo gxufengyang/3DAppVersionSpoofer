@@ -18,8 +18,8 @@ jobs:
       - name: Setup Theos Environment
         uses: Randomblock1/theos-action@v1
         with:
-          theos-src: 'https://github.com'
-          theos-sdks: 'https://github.com'
+          theos-src: 'https://github.com/theos/theos'
+          theos-sdks: 'https://github.com/theos/sdks'
           theos-sdks-branch: 'master'
 
       - name: Checkout RootHide Libraries
