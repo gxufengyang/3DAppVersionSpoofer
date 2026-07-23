@@ -28,13 +28,10 @@ jobs:
           repository: roothide/libroothide
           path: libroothide-src
 
-      - name: Install RootHide Header and Library
+      - name: Install RootHide Header
         run: |
-          # Copy headers and libraries from checked-out source to the correct Theos directories
+          # Copy only the necessary header from checked-out source to Theos
           cp libroothide-src/roothide-theos.h "${{ github.workspace }}/theos/include/roothide.h"
-          
-          mkdir -p "${{ github.workspace }}/theos/lib/iphone"
-          cp libroothide-src/lib/iphone/libroothide.tbd "${{ github.workspace }}/theos/lib/iphone/libroothide.tbd"
           
           # Clean up the cloned source folder to keep workspace tidy
           rm -rf libroothide-src
