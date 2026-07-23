@@ -41,25 +41,23 @@ jobs:
 
       - name: Compile and Install AltList Dependency
         run: |
-          # 1. Structure header files inside the global include tree
+          # 1. Install header files so compilation succeeds
           mkdir -p "${{ github.workspace }}/theos/include/AltList"
           cp altlist-src/*.h "${{ github.workspace }}/theos/include/AltList/"
           
-          # 2. Compile AltList framework under RootHide scheme without running staging/packaging rules
+          # 2. Build AltList framework under RootHide scheme
           cd altlist-src
           make FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
           
-          # 3. Extract and place the compiled shared framework object binary into Theos' global library folder
-          mkdir -p "${{ github.workspace }}/theos/lib"
+          # 3. Create the standard framework location inside the RootHide target path
+          mkdir -p "${{ github.workspace }}/theos/vendor/frameworks"
+          
+          # 4. Copy the compiled AltList.framework directly into the vendor directory
           if [ -d ".theos/obj/AltList.framework" ]; then
-            cp .theos/obj/AltList.framework/AltList "${{ github.workspace }}/theos/lib/libaltlist.dylib"
-          elif [ -f ".theos/obj/arm64/altlist.dylib" ]; then
-            cp .theos/obj/arm64/altlist.dylib "${{ github.workspace }}/theos/lib/libaltlist.dylib"
-          elif [ -f ".theos/obj/arm64e/altlist.dylib" ]; then
-            cp .theos/obj/arm64e/altlist.dylib "${{ github.workspace }}/theos/lib/libaltlist.dylib"
+            cp -r .theos/obj/AltList.framework "${{ github.workspace }}/theos/vendor/frameworks/"
           fi
           
-          # 4. Clean up workspace
+          # 5. Clean up workspace
           cd ..
           rm -rf altlist-src
         env:
@@ -67,8 +65,8 @@ jobs:
 
       - name: Compile and Package Tweak
         run: |
-          # Pass the dynamic binary flag to satisfy Clang's linker rules natively
-          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide 3DAppVersionSpooferPrefs_LIBRARIES+=altlist
+          # Inject AltList as a framework dependency instead of a standalone library
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide 3DAppVersionSpooferPrefs_EXTRA_FRAMEWORKS+=AltList
         env:
           THEOS: ${{ github.workspace }}/theos
 
