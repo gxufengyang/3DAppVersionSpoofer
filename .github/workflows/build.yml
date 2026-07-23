@@ -39,16 +39,31 @@ jobs:
           repository: opa334/AltList
           path: altlist-src
 
-      - name: Setup AltList Headers
+      - name: Compile and Install AltList Dependency
         run: |
-          # Install the header folder correctly
+          # 1. Standardize the header files inside the global include tree
           mkdir -p "${{ github.workspace }}/theos/include/AltList"
           cp altlist-src/*.h "${{ github.workspace }}/theos/include/AltList/"
+          
+          # 2. Build AltList framework using RootHide scheme to generate the real binary stubs
+          cd altlist-src
+          make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
+          
+          # 3. Extract and place the compiled library binary into Theos' global library folder
+          mkdir -p "${{ github.workspace }}/theos/lib"
+          cp .theos/obj/arm64/altlist.dylib "${{ github.workspace }}/theos/lib/libaltlist.dylib"
+          cp .theos/obj/arm64e/altlist.dylib "${{ github.workspace }}/theos/lib/libaltlist.dylib" 2>/dev/null || true
+          
+          # 4. Clean up workspace
+          cd ..
           rm -rf altlist-src
+        env:
+          THEOS: ${{ github.workspace }}/theos
 
       - name: Compile and Package Tweak
         run: |
-          # Inject the AltList library flag directly through the execution arguments to protect the Makefile structure
+          # The preferences makefile lacks an explicit library declaration. 
+          # We dynamically pass it as an argument during compilation now that libaltlist.dylib is available.
           make package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide 3DAppVersionSpooferPrefs_LIBRARIES+=altlist
         env:
           THEOS: ${{ github.workspace }}/theos
