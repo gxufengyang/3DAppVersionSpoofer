@@ -18,7 +18,7 @@ jobs:
       - name: Setup RootHide Theos Environment
         uses: Randomblock1/theos-action@v1
         with:
-          theos-src: 'https://github.com/roothide/theos'
+          theos-src: 'https://github.com/roothide/Developer'
           theos-sdks: 'https://github.com/theos/sdks'
           theos-sdks-branch: 'master'
 
