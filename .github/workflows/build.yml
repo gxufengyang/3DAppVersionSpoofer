@@ -15,7 +15,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup RootHide Environment
+      - name: Setup RootHide Theos Environment
         uses: Randomblock1/theos-action@v1
         with:
           theos-src: 'https://github.com/roothide/theos'
@@ -30,11 +30,25 @@ jobs:
 
       - name: Install RootHide Header
         run: |
-          # Copy only the necessary header from checked-out source to Theos
           cp libroothide-src/roothide-theos.h "${{ github.workspace }}/theos/include/roothide.h"
-          
-          # Clean up the cloned source folder to keep workspace tidy
           rm -rf libroothide-src
+
+      - name: Checkout and Install AltList Headers
+        uses: actions/checkout@v4
+        with:
+          repository: opa334/AltList
+          path: altlist-src
+
+      - name: Setup AltList for Theos
+        run: |
+          # Create a dedicated AltList folder inside the Theos include tree
+          mkdir -p "${{ github.workspace }}/theos/include/AltList"
+          
+          # Move all public header files into the newly created folder
+          cp altlist-src/*.h "${{ github.workspace }}/theos/include/AltList/"
+          
+          # Clean up the cloned source directory
+          rm -rf altlist-src
 
       - name: Compile and Package Tweak
         run: |
